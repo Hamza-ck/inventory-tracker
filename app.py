@@ -56,6 +56,11 @@ st.markdown('''
         color: #1e293b;
         border-radius: 0.5rem;
     }
+    /* Ensure all form labels are visible and dark */
+    label, .st-emotion-cache-1kyxreq, .st-emotion-cache-1c7y2kd, .st-emotion-cache-1wmy9hl {
+        color: #1e293b !important;
+        font-weight: 600;
+    }
     </style>
 ''', unsafe_allow_html=True)
 
