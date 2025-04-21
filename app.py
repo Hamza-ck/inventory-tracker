@@ -276,22 +276,27 @@ elif page == "Scan Paper Input":
     img_file = st.camera_input("Open Camera")
     model, qty, price = '', '', ''
     if img_file is not None:
-        import pytesseract
-        import cv2
-        import numpy as np
-        file_bytes = np.asarray(bytearray(img_file.read()), dtype=np.uint8)
-        img = cv2.imdecode(file_bytes, 1)
-        text = pytesseract.image_to_string(img)
-        # Simple extraction logic
-        import re
-        model_match = re.search(r'Model[:\s]*([\w-]+)', text, re.IGNORECASE)
-        qty_match = re.search(r'Qty[:\s]*(\d+)', text, re.IGNORECASE)
-        price_match = re.search(r'Price[:\s]*(\d+\.?\d*)', text, re.IGNORECASE)
-        model = model_match.group(1) if model_match else ''
-        qty = qty_match.group(1) if qty_match else ''
-        price = price_match.group(1) if price_match else ''
-        st.image(img, caption="Preview Image")
-        st.write(f"Extracted Text: {text}")
+        try:
+            import pytesseract
+            import cv2
+            import numpy as np
+            
+            file_bytes = np.asarray(bytearray(img_file.read()), dtype=np.uint8)
+            img = cv2.imdecode(file_bytes, 1)
+            text = pytesseract.image_to_string(img)
+            # Simple extraction logic
+            import re
+            model_match = re.search(r'Model[:\s]*([\w-]+)', text, re.IGNORECASE)
+            qty_match = re.search(r'Qty[:\s]*(\d+)', text, re.IGNORECASE)
+            price_match = re.search(r'Price[:\s]*(\d+\.?\d*)', text, re.IGNORECASE)
+            model = model_match.group(1) if model_match else ''
+            qty = qty_match.group(1) if qty_match else ''
+            price = price_match.group(1) if price_match else ''
+            st.image(img, caption="Preview Image")
+            st.write(f"Extracted Text: {text}")
+        except ImportError:
+            st.error("📸 Camera features are not available. Please make sure OpenCV is properly installed.")
+            st.stop()
     with st.form("scan_purchase_form"):
         model_val = st.text_input("Model", value=model)
         qty_val = st.number_input("Quantity", min_value=1, value=int(qty) if qty else 1, step=1)

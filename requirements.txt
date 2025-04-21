@@ -3,7 +3,7 @@ pandas
 gspread
 oauth2client
 plotly
-opencv-python
+python-opencv
 pytesseract
 streamlit-option-menu
 streamlit-camera-input-live
