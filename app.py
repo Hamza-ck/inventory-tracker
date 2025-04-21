@@ -271,60 +271,103 @@ elif page == "Add Sale":
         st.success(f"✔️ Sale added: {Model} | {Color} | Qty: {Quantity_sold} | ₹{total_sale}")
 
 elif page == "Scan Paper Input":
-    st.title("📷 Scan Paper Input")
-    st.info("Write like → Model: A15, Qty: 10, Price: 25")
+    st.title("📷 Input Purchase Details")
     
-    # Add warning about OCR availability
-    st.warning("Note: Text recognition (OCR) features may not be available in the cloud version. Please enter the details manually if needed.")
+    # Create columns for the two input methods
+    col1, col2 = st.columns(2)
     
-    img_file = st.camera_input("Open Camera")
-    model, qty, price = '', '', ''
-    if img_file is not None:
-        try:
-            import pytesseract
-            import cv2
-            import numpy as np
+    with col1:
+        st.subheader("📝 Manual Entry")
+        with st.form("manual_purchase_form"):
+            model_val = st.text_input("Model (e.g., A15)", help="Enter the model number or name")
+            # Fetch unique colors from purchase log for dropdown
+            purchase_data = purchase_log.get_all_records()
+            colors = sorted(list(set([row["Color"] for row in purchase_data])))
+            color_val = st.selectbox("Color", colors)
+            qty_val = st.number_input("Quantity", min_value=1, step=1)
+            price_val = st.number_input("Purchase Price", min_value=0.0, step=0.5)
+            date_val = st.date_input("Arrival Date", value=datetime.date.today())
+            submit_manual = st.form_submit_button("💾 Save Purchase")
+        
+        if submit_manual:
+            total_value = qty_val * price_val
+            purchase_log.append_row([
+                model_val,
+                color_val,
+                qty_val,
+                price_val,
+                total_value,
+                str(date_val)
+            ])
+            st.success(f"✔️ Entry added: {model_val} | {color_val} | Qty: {qty_val} | ₹{total_value}")
+    
+    with col2:
+        st.subheader("📸 Scan Input (Beta)")
+        with st.expander("ℹ️ How to use camera input"):
+            st.markdown("""
+            1. Write your purchase details clearly on paper
+            2. Format: `Model: A15, Qty: 10, Price: 25`
+            3. Take a photo using the camera below
+            4. Verify and adjust the scanned values
             
-            file_bytes = np.asarray(bytearray(img_file.read()), dtype=np.uint8)
-            img = cv2.imdecode(file_bytes, 1)
+            Note: Text recognition may not be available in some environments.
+            You can always use the manual entry form.
+            """)
+        
+        img_file = st.camera_input("Take Photo")
+        if img_file is not None:
             try:
-                text = pytesseract.image_to_string(img)
-                # Simple extraction logic
-                import re
-                model_match = re.search(r'Model[:\s]*([\w-]+)', text, re.IGNORECASE)
-                qty_match = re.search(r'Qty[:\s]*(\d+)', text, re.IGNORECASE)
-                price_match = re.search(r'Price[:\s]*(\d+\.?\d*)', text, re.IGNORECASE)
-                model = model_match.group(1) if model_match else ''
-                qty = qty_match.group(1) if qty_match else ''
-                price = price_match.group(1) if price_match else ''
-                st.image(img, caption="Preview Image")
-                st.write(f"Extracted Text: {text}")
-            except pytesseract.TesseractNotFoundError:
-                st.error("📸 Text recognition (OCR) is not available. Please enter the details manually.")
-                st.image(img, caption="Preview Image (OCR not available)")
-        except ImportError:
-            st.error("📸 Camera features are not available. Please make sure OpenCV is properly installed.")
-            st.stop()
-
-    with st.form("scan_purchase_form"):
-        model_val = st.text_input("Model", value=model)
-        qty_val = st.number_input("Quantity", min_value=1, value=int(qty) if qty else 1, step=1)
-        price_val = st.number_input("Purchase Price", min_value=0.0, value=float(price) if price else 0.0, step=0.5)
-        # Fetch unique colors from purchase log for dropdown
-        purchase_data = purchase_log.get_all_records()
-        colors = sorted(list(set([row["Color"] for row in purchase_data])))
-        color_val = st.selectbox("Color", colors)
-        date_val = st.date_input("Arrival Date", value=datetime.date.today())
-        submit_scan = st.form_submit_button("Save Purchase")
-    
-    if submit_scan:
-        total_value = qty_val * price_val
-        purchase_log.append_row([
-            model_val,
-            color_val,
-            qty_val,
-            price_val,
-            total_value,
-            str(date_val)
-        ])
-        st.success(f"✔️ Entry added: {model_val} | {color_val} | Qty: {qty_val} | ₹{total_value}")
+                import pytesseract
+                import cv2
+                import numpy as np
+                
+                file_bytes = np.asarray(bytearray(img_file.read()), dtype=np.uint8)
+                img = cv2.imdecode(file_bytes, 1)
+                try:
+                    text = pytesseract.image_to_string(img)
+                    # Simple extraction logic
+                    import re
+                    model_match = re.search(r'Model[:\s]*([\w-]+)', text, re.IGNORECASE)
+                    qty_match = re.search(r'Qty[:\s]*(\d+)', text, re.IGNORECASE)
+                    price_match = re.search(r'Price[:\s]*(\d+\.?\d*)', text, re.IGNORECASE)
+                    
+                    # Show preview and extracted text
+                    st.image(img, caption="Preview Image", use_column_width=True)
+                    if any([model_match, qty_match, price_match]):
+                        st.success("Text extracted successfully! Please verify below.")
+                    
+                    # Create form with extracted values
+                    with st.form("scan_purchase_form"):
+                        model = st.text_input("Model", 
+                                          value=model_match.group(1) if model_match else '',
+                                          help="Verify or correct the scanned model")
+                        color = st.selectbox("Color", colors)
+                        qty = st.number_input("Quantity", 
+                                          min_value=1,
+                                          value=int(qty_match.group(1)) if qty_match else 1,
+                                          help="Verify or correct the scanned quantity")
+                        price = st.number_input("Purchase Price",
+                                            min_value=0.0,
+                                            value=float(price_match.group(1)) if price_match else 0.0,
+                                            help="Verify or correct the scanned price")
+                        date = st.date_input("Arrival Date", value=datetime.date.today())
+                        submit_scan = st.form_submit_button("💾 Save Scanned Purchase")
+                    
+                    if submit_scan:
+                        total_value = qty * price
+                        purchase_log.append_row([
+                            model,
+                            color,
+                            qty,
+                            price,
+                            total_value,
+                            str(date)
+                        ])
+                        st.success(f"✔️ Entry added: {model} | {color} | Qty: {qty} | ₹{total_value}")
+                
+                except pytesseract.TesseractNotFoundError:
+                    st.info("📝 Text recognition is not available in this environment. Please use the manual entry form on the left.")
+                    st.image(img, caption="Preview Image", use_column_width=True)
+            
+            except ImportError:
+                st.info("📝 Camera features are not fully supported. Please use the manual entry form on the left.")
