@@ -273,6 +273,10 @@ elif page == "Add Sale":
 elif page == "Scan Paper Input":
     st.title("📷 Scan Paper Input")
     st.info("Write like → Model: A15, Qty: 10, Price: 25")
+    
+    # Add warning about OCR availability
+    st.warning("Note: Text recognition (OCR) features may not be available in the cloud version. Please enter the details manually if needed.")
+    
     img_file = st.camera_input("Open Camera")
     model, qty, price = '', '', ''
     if img_file is not None:
@@ -283,20 +287,25 @@ elif page == "Scan Paper Input":
             
             file_bytes = np.asarray(bytearray(img_file.read()), dtype=np.uint8)
             img = cv2.imdecode(file_bytes, 1)
-            text = pytesseract.image_to_string(img)
-            # Simple extraction logic
-            import re
-            model_match = re.search(r'Model[:\s]*([\w-]+)', text, re.IGNORECASE)
-            qty_match = re.search(r'Qty[:\s]*(\d+)', text, re.IGNORECASE)
-            price_match = re.search(r'Price[:\s]*(\d+\.?\d*)', text, re.IGNORECASE)
-            model = model_match.group(1) if model_match else ''
-            qty = qty_match.group(1) if qty_match else ''
-            price = price_match.group(1) if price_match else ''
-            st.image(img, caption="Preview Image")
-            st.write(f"Extracted Text: {text}")
+            try:
+                text = pytesseract.image_to_string(img)
+                # Simple extraction logic
+                import re
+                model_match = re.search(r'Model[:\s]*([\w-]+)', text, re.IGNORECASE)
+                qty_match = re.search(r'Qty[:\s]*(\d+)', text, re.IGNORECASE)
+                price_match = re.search(r'Price[:\s]*(\d+\.?\d*)', text, re.IGNORECASE)
+                model = model_match.group(1) if model_match else ''
+                qty = qty_match.group(1) if qty_match else ''
+                price = price_match.group(1) if price_match else ''
+                st.image(img, caption="Preview Image")
+                st.write(f"Extracted Text: {text}")
+            except pytesseract.TesseractNotFoundError:
+                st.error("📸 Text recognition (OCR) is not available. Please enter the details manually.")
+                st.image(img, caption="Preview Image (OCR not available)")
         except ImportError:
             st.error("📸 Camera features are not available. Please make sure OpenCV is properly installed.")
             st.stop()
+
     with st.form("scan_purchase_form"):
         model_val = st.text_input("Model", value=model)
         qty_val = st.number_input("Quantity", min_value=1, value=int(qty) if qty else 1, step=1)
@@ -307,6 +316,7 @@ elif page == "Scan Paper Input":
         color_val = st.selectbox("Color", colors)
         date_val = st.date_input("Arrival Date", value=datetime.date.today())
         submit_scan = st.form_submit_button("Save Purchase")
+    
     if submit_scan:
         total_value = qty_val * price_val
         purchase_log.append_row([
