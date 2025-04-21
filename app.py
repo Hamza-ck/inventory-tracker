@@ -23,6 +23,15 @@ st.markdown('''
         padding: 1.2em 0.5em 1.2em 1em;
         margin-bottom: 1em;
     }
+    div[data-testid="stMetric"] > div:first-child {
+        color: #f1f5f9 !important;
+    }
+    div[data-testid="stMetric"] label {
+        color: #f1f5f9 !important;
+    }
+    div[data-testid="stMetric"] div[data-testid="stMetricLabel"] {
+        color: #f1f5f9 !important;
+    }
     .stDataFrame, .stTable {
         background: #fff !important;
         border-radius: 0.5rem;
@@ -56,10 +65,14 @@ st.markdown('''
         color: #1e293b;
         border-radius: 0.5rem;
     }
-    /* Ensure all form labels are visible and dark */
+    /* Form labels */
     label, .st-emotion-cache-1kyxreq, .st-emotion-cache-1c7y2kd, .st-emotion-cache-1wmy9hl {
         color: #1e293b !important;
         font-weight: 600;
+    }
+    /* Metrics labels */
+    div[data-testid="stMarkdown"] p, div[data-testid="stMetricLabel"] > div, div[data-testid="stMetricValue"] > div {
+        color: #f1f5f9 !important;
     }
     </style>
 ''', unsafe_allow_html=True)
