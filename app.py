@@ -2,7 +2,7 @@ import streamlit as st
 import datetime
 import pandas as pd
 import plotly.express as px
-from config import connect_sheet
+from sheet_config import connect_sheet
 
 st.markdown('''
     <style>
