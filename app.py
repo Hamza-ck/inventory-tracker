@@ -30,6 +30,88 @@ st.markdown("""
         color: var(--white);
     }
 
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .navbar {
+        background-color: var(--secondary);
+        color: var(--text);
+        padding: 12px 20px;
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .navbar h1 {
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .navbar-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .button {
+        background-color: var(--accent);
+        color: var(--text);
+        border: none;
+        border-radius: 6px;
+        padding: 8px 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .button:hover {
+        background-color: var(--light);
+        transform: translateY(-2px);
+    }
+
+    .button.primary {
+        background-color: var(--secondary);
+    }
+
+    .button.primary:hover {
+        background-color: var(--accent);
+    }
+
+    .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background-color: var(--light);
+        color: var(--text);
+        border-radius: 8px;
+        padding: 16px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-card.highlight {
+        background-color: var(--accent);
+        grid-column: span 2;
+    }
+
     .content-card {
         background-color: var(--accent);
         border-radius: 12px;
@@ -56,6 +138,7 @@ st.markdown("""
         border-radius: 6px;
         background-color: var(--white);
         color: var(--text);
+        font-size: 16px;
     }
 
     .form-actions {
@@ -71,74 +154,6 @@ st.markdown("""
         color: var(--text);
     }
 
-    section[data-testid="stSidebar"] {
-        background: #1e293b;
-        color: #f1f5f9;
-        border-right: 1px solid #334155;
-    }
-    .main, .block-container {
-        background: #f8fafc !important;
-        color: #1e293b !important;
-    }
-    div[data-testid="stMetric"] {
-        background: #1e293b;
-        color: #f1f5f9 !important;
-        border-radius: 0.75rem;
-        box-shadow: 0 2px 8px 0 #e5e7eb;
-        padding: 1.2em 0.5em 1.2em 1em;
-        margin-bottom: 1em;
-    }
-    div[data-testid="stMetric"] > div:first-child {
-        color: #f1f5f9 !important;
-    }
-    div[data-testid="stMetric"] label {
-        color: #f1f5f9 !important;
-    }
-    div[data-testid="stMetric"] div[data-testid="stMetricLabel"] {
-        color: #f1f5f9 !important;
-    }
-    .stDataFrame, .stTable {
-        background: #fff !important;
-        border-radius: 0.5rem;
-        box-shadow: 0 2px 8px 0 #e5e7eb;
-        color: #1e293b !important;
-    }
-    h1, h2, h3, h4, h5, h6 {
-        color: #1e293b !important;
-        font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-    }
-    .stButton > button {
-        background: #2563eb;
-        color: #fff;
-        border-radius: 0.5rem;
-        border: none;
-        padding: 0.5em 1.2em;
-        font-weight: 600;
-        transition: background 0.2s;
-    }
-    .stButton > button:hover {
-        background: #1d4ed8;
-    }
-    .stTextInput > div > input, .stNumberInput > div > input, .stDateInput > div > input {
-        background: #f1f5f9;
-        border-radius: 0.5rem;
-        border: 1px solid #e5e7eb;
-        color: #1e293b;
-    }
-    .stAlert.info {
-        background: #e0e7ff;
-        color: #1e293b;
-        border-radius: 0.5rem;
-    }
-    /* Form labels */
-    label, .st-emotion-cache-1kyxreq, .st-emotion-cache-1c7y2kd, .st-emotion-cache-1wmy9hl {
-        color: #1e293b !important;
-        font-weight: 600;
-    }
-    /* Metrics labels */
-    div[data-testid="stMarkdown"] p, div[data-testid="stMetricLabel"] > div, div[data-testid="stMetricValue"] > div {
-        color: #f1f5f9 !important;
-    }
     </style>
 """, unsafe_allow_html=True)
 
