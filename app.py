@@ -4,8 +4,73 @@ import pandas as pd
 import plotly.express as px
 from sheet_config import connect_sheet
 
-st.markdown('''
+st.set_page_config(
+    page_title="Farhan Inventory",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+st.markdown("""
     <style>
+    :root {
+        --primary: #0a3b45;
+        --secondary: #4dacb9;
+        --accent: #68bbc7;
+        --light: #a8d5db;
+        --lighter: #cce6ea;
+        --white: #f5fbfc;
+        --text: #003039;
+        --success: #3e8d63;
+        --warning: #d9a42e;
+    }
+
+    body {
+        background-color: var(--primary);
+        color: var(--white);
+    }
+
+    .content-card {
+        background-color: var(--accent);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .form-group label {
+        font-weight: 500;
+        color: var(--text);
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--light);
+        border-radius: 6px;
+        background-color: var(--white);
+        color: var(--text);
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 20px;
+    }
+
+    .total-amount {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text);
+    }
+
     section[data-testid="stSidebar"] {
         background: #1e293b;
         color: #f1f5f9;
@@ -75,22 +140,20 @@ st.markdown('''
         color: #f1f5f9 !important;
     }
     </style>
-''', unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # Connect to the sheet
 sheet = connect_sheet("Inventory Tracker")
-# Select the correct worksheet
+sales_log = sheet.worksheet("Sales_Log")
 purchase_log = sheet.worksheet("Purchases_Log")
 
-# Add a sidebar for navigation
-st.sidebar.title("Navigation")
+# Sidebar navigation
 page = st.sidebar.radio("Go to", ["Inventory Dashboard", "Add Purchase", "Add Sale"])
 
 if page == "Inventory Dashboard":
     st.title("📊 Inventory Dashboard")
     # Load data
     purchase_data = purchase_log.get_all_records()
-    sales_log = sheet.worksheet("Sales_Log")
     sales_data = sales_log.get_all_records()
     df_pur = pd.DataFrame(purchase_data)
     df_pur.columns = df_pur.columns.astype(str).str.strip()
@@ -237,35 +300,61 @@ elif page == "Add Purchase":
         st.success(f"✔️ Entry added: {model} | {color} | Qty: {quantity} | ₹{total_value}")
 
 elif page == "Add Sale":
-    # Connect to the sales worksheet
-    sales_log = sheet.worksheet("Sales_Log")
     st.title("💸 Add Sale Entry")
-    with st.form("sales_form"):
-        # Fetch unique models and colors from purchase log for dropdowns
-        purchase_data = purchase_log.get_all_records()
-        models = sorted(list(set([row["Model"] for row in purchase_data])))
-        colors = sorted(list(set([row["Color"] for row in purchase_data])))
 
-        Model = st.selectbox("Model", models)
-        Color = st.selectbox("Color", colors)
-        Quantity_sold = st.number_input("Quantity Sold", min_value=1, step=1)
-        Selling_price = st.number_input("Selling Price per Unit", min_value=0.0, step=0.5)
-        date_of_sale = st.date_input("Date of Sale", value=datetime.date.today())
-        Customer_name = st.text_input("Customer Name (Optional)", max_chars=50)
-        # Show total sale live
-        Total_sale = Quantity_sold * Selling_price
-        st.info(f"Total Sale: ₹{Total_sale}")
+    # Fetch unique models and colors from purchase log
+    purchase_data = purchase_log.get_all_records()
+    df_pur = pd.DataFrame(purchase_data)
+    models = sorted(df_pur['Model'].unique()) if 'Model' in df_pur.columns else []
+
+    # Sale Entry Form
+    st.markdown('<div class="content-card">', unsafe_allow_html=True)
+    with st.form("sales_form", clear_on_submit=True):
+        col1, col2 = st.columns(2)
+
+        with col1:
+            model_input_type = st.radio("Model Input Type", ["Choose from List", "Enter Manually"], horizontal=True)
+            if model_input_type == "Choose from List":
+                model = st.selectbox("Model Name", models)
+            else:
+                model = st.text_input("Model Name")
+
+            color = st.text_input("Color")
+
+        with col2:
+            quantity_sold = st.number_input("Quantity Sold", min_value=1, step=1)
+            selling_price = st.number_input("Selling Price per Unit (₹)", min_value=0.0, step=0.5)
+
+        col3, col4 = st.columns(2)
+        with col3:
+            date_of_sale = st.date_input("Date of Sale", value=datetime.date.today())
+            customer_name = st.text_input("Customer Name")
+
+        with col4:
+            payment_method = st.selectbox("Payment Method", ["Cash", "UPI", "Card", "Bank Transfer"])
+            customer_phone = st.text_input("Customer Phone")
+
+        total_sale = quantity_sold * selling_price
+        st.markdown(f'<div class="total-amount">Total Amount: ₹{total_sale:,.2f}</div>', unsafe_allow_html=True)
+
         submit_sale = st.form_submit_button("Submit Sale")
 
+    st.markdown('</div>', unsafe_allow_html=True)
+
     if submit_sale:
-        total_sale = Quantity_sold * Selling_price
-        sales_log.append_row([
-        str(date_of_sale),  # Date
-        Model,              # Model
-        Color,              # Color
-        Quantity_sold,      # Quantity Sold
-        Selling_price,      # Selling Price
-        Customer_name,      # Customer Name
-        Total_sale          # Total Sale Value
-    ])
-        st.success(f"✔️ Sale added: {Model} | {Color} | Qty: {Quantity_sold} | ₹{total_sale}")
+        if not model or not color or quantity_sold <= 0 or selling_price <= 0:
+            st.error("Please fill all required fields.")
+        else:
+            sales_log.append_row([
+                str(date_of_sale),
+                model,
+                color,
+                quantity_sold,
+                selling_price,
+                customer_name,
+                payment_method,
+                customer_phone,
+                total_sale
+            ])
+            st.success("Sale entry added successfully!")
+            st.balloons()
